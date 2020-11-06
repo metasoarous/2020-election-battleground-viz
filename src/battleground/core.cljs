@@ -1,4 +1,4 @@
-(ns example.core
+(ns battleground.core
   (:require [oz.core :as oz]
             [reagent.core :as r]
             [reagent.dom :as rdom]
@@ -16,7 +16,8 @@
   (->> (string/split csv-string #"[\r\n]+")
        (map #(string/split % #","))
        (csv/process
-         {:cast-fns {:hurdle_change csv/->float
+         {:structs true
+          :cast-fns {:hurdle_change csv/->float
                      :vote_differential csv/->int
                      :new_votes csv/->int
                      :precincts_reporting csv/->int
@@ -28,6 +29,9 @@
                      :leading_candidate_votes csv/->int
                      :leading_candidate_partition csv/->float
                      :precincts_total csv/->int}})))
+
+(def blue "#1375B7")
+(def red  "#C93135")
 
 (defn get-data []
   (go (let [{:keys [body]} (a/<! (http/get "battleground-state-changes.csv"))]
@@ -50,24 +54,37 @@
   [data]
   [oz/vega-lite
    {:data {:values data}
-    :width 800
+    :width 900
     :height 400
     ;:selection {:grid {:type :interval :bind :scales}}
     :encoding {:x {:field :votes_remaining
-                   :type :quantitative}
+                   :type :quantitative
+                   :title "Remaining votes"
+                   :scale {:zero true}}
                :y {:field :vote_differential
-                   :type :quantitative}
+                   :type :quantitative
+                   :title "Vote gap"}
                :color {:field :leading_candidate_name
+                       :title "Leading candidate"
                        :scale {:domain ["Trump" "Biden"]
-                               :range [:red :blue]}}}
-    ;:mark {:type :point}
-    :layer [{:mark {:type :line :tooltip {:content :data}}}
+                               :range [red blue]}}}
+    :layer [{:mark {:type :line
+                    :tooltip {:content :data}}}
+                    ;:interpolate :step-after}}
              ;:selection {:grid {:type :interval :bind :scales}}}
-            {:mark {:type :point :tooltip {:content :data}}
+            {:mark {:type :circle :tooltip {:content :data}}
+             :encoding {:size {:field :new_votes
+                               :type :quantitative}}
              :selection {:grid {:type :interval :bind :scales}}}]}])
 
+(defn results-table
+  [data]
+  [oz/data-table
+   data
+   {}])
 
-(defn main []
+
+(defn intro []
   [:div
    [:h1 "2020 Presidential Election battleground results"]
    [:div
@@ -95,13 +112,17 @@
            "https://github.com/metasoarous/2020-election-battleground-viz/issues"]
        "."]
 
-   [:p "Thanks! Please enjoy!"]
+   [:p "Thanks! Please enjoy!"]])
 
+(defn main []
+  [:div
+   [intro]
    (for [[state updates] @app-state]
      ^{:key state}
      [:div
        [:h2 state]
        [results-viz updates]])])
+       ;[results-table updates]])])
 
 (defn init
   [& args]
