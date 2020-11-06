@@ -13,7 +13,7 @@
 
 (defn process-csv
   [csv-string]
-  (->> (string/split csv-string #"\r\n")
+  (->> (string/split csv-string #"[\r\n]+")
        (map #(string/split % #","))
        (csv/process
          {:cast-fns {:hurdle_change csv/->float
@@ -34,16 +34,14 @@
         (->> (process-csv body)
              (group-by :state)))))
 
-
-(keys @app-state)
 (defn update-data []
   (go (reset! app-state (a/<! (get-data)))))
-
 
 (defn update-loop []
   (go-loop [i 0]
     (js/console.log "Fetching data round:" i)
     (a/<! (update-data))
+    (js/console.log "Results for states:" (keys @app-state))
     ;(a/<! (a/timeout (* 5 60 1000)))
     (a/<! (a/timeout (* 30 1000)))
     (recur (inc i))))
@@ -53,7 +51,7 @@
   [data]
   [oz/vega-lite
    {:data {:values data}
-    :width 600
+    :width 800
     :height 400
     :encoding {:x {:field :timestamp
                    :type :temporal}
