@@ -1,0 +1,12 @@
+{
+  "devDependencies": {
+    "shadow-cljs": "^2.8.83"
+  },
+  "dependencies": {
+    "react": "16.13.0",
+    "react-dom": "16.13.0",
+    "vega": "^5.17.0",
+    "vega-embed": "^6.13.0",
+    "vega-lite": "^4.17.0"
+  }
+}

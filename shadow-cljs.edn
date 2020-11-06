@@ -1,0 +1,19 @@
+{
+ ;; Eventually, but for now; or maybe that will be separate?
+ ;:deps true
+ :dependencies [[cljsjs/vega-spec-injector "0.0.2-0"]
+                [metasoarous/oz "1.6.0-alpha31"]
+                [cljs-http "0.1.46"]
+                [cider/cider-nrepl "0.22.4"]
+                [semantic-csv "0.2.1-alpha1"]]
+ :source-paths ["src"]
+
+ :nrepl {:port 3333}
+
+ ;; ADD - a port (e.g., 8080) for the development-time HTTP server that serves the app
+ :dev-http {8080 "public"}
+
+ :builds
+ {:app  ; NOTE - This is the build ID referenced at various places below.
+  {:target :browser
+   :modules {:main {:init-fn example.core/init}}}}}
