@@ -13,7 +13,7 @@
 
 (defn process-csv
   [csv-string]
-  (->> (string/split csv-string #"[\r\n]+")
+  (->> (string/split csv-string #"\r\n")
        (map #(string/split % #","))
        (csv/process
          {:cast-fns {:hurdle_change csv/->float
@@ -22,7 +22,7 @@
                      :precincts_reporting csv/->int
                      :hurdle csv/->float
                      :trailing_candidate_partition csv/->float
-                     :votes_remaining (comp - csv/->int)
+                     :votes_remaining csv/->int
                      :trailing_candidate_votes csv/->int
                      :hurdle_mov_avg csv/->float
                      :leading_candidate_votes csv/->int
@@ -34,15 +34,19 @@
         (->> (process-csv body)
              (group-by :state)))))
 
+
+(keys @app-state)
 (defn update-data []
   (go (reset! app-state (a/<! (get-data)))))
+
 
 (defn update-loop []
   (go-loop [i 0]
     (js/console.log "Fetching data round:" i)
     (a/<! (update-data))
     (js/console.log "Results for states:" (keys @app-state))
-    (a/<! (a/timeout (* 5 60 1000)))
+    ;(a/<! (a/timeout (* 5 60 1000)))
+    (a/<! (a/timeout (* 30 1000)))
     (recur (inc i))))
 
 
@@ -52,50 +56,25 @@
    {:data {:values data}
     :width 800
     :height 400
-    ;:selection {:grid {:type :interval :bind :scales}}
-    :encoding {:x {:field :votes_remaining
-                   :type :quantitative}
+    :encoding {:x {:field :timestamp
+                   :type :temporal}
                :y {:field :vote_differential
                    :type :quantitative}
                :color {:field :leading_candidate_name
                        :scale {:domain ["Trump" "Biden"]
                                :range [:red :blue]}}}
-    ;:mark {:type :point}
     :layer [{:mark {:type :line :tooltip {:content :data}}}
-             ;:selection {:grid {:type :interval :bind :scales}}}
-            {:mark {:type :point :tooltip {:content :data}}
-             :selection {:grid {:type :interval :bind :scales}}}]}])
+            {:mark {:type :point :tooltip {:content :data}}}]}])
 
 
 (defn main []
   [:div
-   [:h1 "2020 Presidential Election battleground results"]
-   [:div
-    {:style {:display :none}}
-    [:img {:src "sample.png"}]]
+   [:h1 "Election results viz"]
    [:p "Made with data from " [:a {:href "https://alex.github.io/nyt-2020-election-scraper/battleground-state-changes.html"}
-                               "https://alex.github.io/nyt-2020-election-scraper/battleground-state-changes.html"]
-    " (in turn, from the New York Times)."]
+                               "https://alex.github.io/nyt-2020-election-scraper/battleground-state-changes.html"]]
 
    [:p "For source code see " [:a {:href "https://github.com/metasoarous/2020-election-battleground-viz"}
-                               "https://github.com/metasoarous/2020-election-battleground-viz"]
-       "."]
-
-   [:p "This application will reload data " [:strong "every 5 minutes"]
-       ", so no need to refresh over and over.
-       However, the features here may improve over time, so feel free to reload periodically."]
-
-   [:p "The visualizations below show the vote advantage of the currently ahead candidate, versus the remaining number of votes.
-       These lines and points are colored according to who is ahead at the point in time.
-       If you hover over data points, you can see more information about what was reported at that point in time.
-       You may also use a mouse scroll wheel to zoom into the visualizations to pick out detail."]
-
-   [:p "If you've found an issue, or would like to make a suggestion or contribution, please see "
-       [:a {:href "https://github.com/metasoarous/2020-election-battleground-viz/issues"}
-           "https://github.com/metasoarous/2020-election-battleground-viz/issues"]
-       "."]
-
-   [:p "Thanks! Please enjoy!"]
+                               "https://github.com/metasoarous/2020-election-battleground-viz"]]
 
    (for [[state updates] @app-state]
      ^{:key state}
