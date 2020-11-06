@@ -1,7 +1,7 @@
 
 # 2020 Election Battleground Viz
 
-See live site at: <https://metasoarous.github.io/2020-election-battleground-viz>
+See live site at: <http://2020-election-results.surge.sh>
 
 Build with ClojureScript, React and Vega-Lite.
 
