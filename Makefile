@@ -50,9 +50,7 @@ build:
 .PHONY: release
 release: check-clean-tree build
 	# Add the js compilation output and commit
-	git add * && \
-	git commit -m "release build" && \
-	git push origin
+	surge public 2020-election-results.surge.sh
 
 .PHONY: clean
 clean:
