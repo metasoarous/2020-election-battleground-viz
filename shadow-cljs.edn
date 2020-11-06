@@ -16,5 +16,5 @@
  :builds
  {:app  ; NOTE - This is the build ID referenced at various places below.
   {:target :browser
-   :modules {:main {:init-fn example.core/init}}
-   :devtools {:after-load example.core/init}}}}
+   :modules {:main {:init-fn battleground.core/init}}
+   :devtools {:after-load battleground.core/init}}}}
