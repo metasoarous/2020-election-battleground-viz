@@ -90,35 +90,6 @@
     (recur)))
 
 
-;(- @timer-state (-> app-state deref second second first :timestamp (js/Date.parse)))
-;(-> app-state deref second second first :timestamp) ;(js/Date.parse))
-;(-> app-state deref second second first :timestamp t-coerce/to-long) ;(js/Date.parse))
-;(/
-  ;(- @timer-state
-    ;(->> app-state deref second second first :timestamp (js/Date.parse)))
-  ;60000)
-(/
-  (- ;(t/now)
-    (->> (get @app-state "North Carolina (EV: 15)") first :timestamp (take 19) (apply str)
-         (t-format/parse (t-format/formatter "yyyy-MM-dd HH:mm:ss")))
-         ;(t-coerce/to-long))
-    (->> (get @app-state "North Carolina (EV: 15)") second :timestamp (take 19) (apply str)
-         (t-format/parse (t-format/formatter "yyyy-MM-dd HH:mm:ss"))))
-         ;(t-coerce/to-long)))
-  60000)
-
-;(- (t/now)
-  ;@timer-state)
-
-;(/
-  ;(- 
-    ;(t/now)
-    ;@timer-state)
-  ;60000)
-
-;(t-coerce/to-long "2020-12-01")
-
-
 (def time-formatter
   (t-format/formatter "yyyy-MM-dd HH:mm:ss"))
 
