@@ -101,7 +101,6 @@
           minutes-ago (/ ms-ago 1000 60)
           hours-ago (/ minutes-ago 60)
           days-ago (/ hours-ago 24)]
-      (js/console.log "ago" days-ago hours-ago minutes-ago)
       (cond
         (> days-ago 1)  (str (int days-ago) " days ago")
         (> hours-ago 1) (str (int hours-ago) " hours ago")
