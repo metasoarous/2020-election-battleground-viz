@@ -5,7 +5,10 @@
             [cljs-http.client :as http]
             [semantic-csv.core :as csv]
             [clojure.string :as string]
-            [cljs.core.async :as a])
+            [cljs.core.async :as a]
+            [cljs-time.core :as t]
+            [cljs-time.coerce :as t-coerce]
+            [cljs-time.format :as t-format])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 
@@ -46,7 +49,7 @@
     (js/console.log "Fetching data round:" i)
     (a/<! (update-data))
     (js/console.log "Results for states:" (keys @app-state))
-    (a/<! (a/timeout (* 5 60 1000)))
+    (a/<! (a/timeout (* 60 1000)))
     (recur (inc i))))
 
 
@@ -77,11 +80,119 @@
                                :type :quantitative}}
              :selection {:grid {:type :interval :bind :scales}}}]}])
 
+
+(defonce timer-state (r/atom (js/Date.now)))
+
+(defn start-timer []
+  (go-loop []
+    (a/<! (a/timeout (* 60 1000)))
+    (reset! timer-state (t/now))
+    (recur)))
+
+
+;(- @timer-state (-> app-state deref second second first :timestamp (js/Date.parse)))
+;(-> app-state deref second second first :timestamp) ;(js/Date.parse))
+;(-> app-state deref second second first :timestamp t-coerce/to-long) ;(js/Date.parse))
+;(/
+  ;(- @timer-state
+    ;(->> app-state deref second second first :timestamp (js/Date.parse)))
+  ;60000)
+(/
+  (- ;(t/now)
+    (->> (get @app-state "North Carolina (EV: 15)") first :timestamp (take 19) (apply str)
+         (t-format/parse (t-format/formatter "yyyy-MM-dd HH:mm:ss")))
+         ;(t-coerce/to-long))
+    (->> (get @app-state "North Carolina (EV: 15)") second :timestamp (take 19) (apply str)
+         (t-format/parse (t-format/formatter "yyyy-MM-dd HH:mm:ss"))))
+         ;(t-coerce/to-long)))
+  60000)
+
+;(- (t/now)
+  ;@timer-state)
+
+;(/
+  ;(- 
+    ;(t/now)
+    ;@timer-state)
+  ;60000)
+
+;(t-coerce/to-long "2020-12-01")
+
+
+(def time-formatter
+  (t-format/formatter "yyyy-MM-dd HH:mm:ss"))
+
+(defn time-ago [timestamp]
+  [:td
+    ;(let [ms-ago (+ (- @timer-state (js/Date.parse timestamp))
+                    ;(* 1000 60 60 8))
+    (let [ms-ago (- @timer-state (t-coerce/to-long (t-format/parse time-formatter (apply str (take 19 timestamp)))))
+          minutes-ago (/ ms-ago 1000 60)
+          hours-ago (/ minutes-ago 60)
+          days-ago (/ hours-ago 24)]
+      (js/console.log "ago" days-ago hours-ago minutes-ago)
+      (cond
+        (> days-ago 1)  (str (int days-ago) " days ago")
+        (> hours-ago 1) (str (int hours-ago) " hours ago")
+        :else           (str (int minutes-ago) " minutes ago")))])
+
+(defn format-int [n]
+  (->> (str n)
+       (reverse)
+       (partition-all 3)
+       (map reverse)
+       (map (partial apply str))
+       (interpose ",")
+       (reverse)
+       (apply str)))
+
+(defn round
+  [x dec-places]
+  (let [tens (Math/pow 10 dec-places)]
+    (double (/ (int (* x tens)) tens))))
+
+
+(defn percent [x]
+  (str (round (* x 100) 1) "%"))
+
+
 (defn results-table
   [data]
-  [oz/data-table
-   data
-   {}])
+  [:table
+   [:tbody
+    [:tr
+     [:th "Time"]
+     [:th "Leader"]
+     [:th "Vote gap"]
+     [:th "Remaining votes"]
+     [:th "Batch % (leader)"]
+     [:th "Batch % (trailer)"]
+     [:th "Trend"]
+     [:th "Hurdle"]]
+     ;[:th "Trend"]
+    (for [{:as row :keys [timestamp leading_candidate_name leading_candidate_partition trailing_candidate_partition votes_remaining hurdle]}
+          (take 10 data)]
+      ^{:key timestamp}
+      [:tr
+       [time-ago timestamp]
+       [:td {:style {:background-color (case leading_candidate_name
+                                         "Trump" "#ED98A9"
+                                         "Biden" "#84C4EE")}}
+          leading_candidate_name]
+       [:td (format-int (:vote_differential row))]
+       [:td (if (< votes_remaining 0)
+              (format-int (- votes_remaining))
+              "Unknown")]
+       [:td (if (> leading_candidate_partition 0)
+              (percent leading_candidate_partition)
+              "N/A")]
+       [:td (if (> trailing_candidate_partition 0)
+              (percent trailing_candidate_partition)
+              "N/A")]
+       [:td (percent (:hurdle_mov_avg row))]
+       [:td (if (> hurdle 0)
+              (percent hurdle)
+              "Unknown")]])]])
 
 
 (defn intro []
@@ -121,11 +232,12 @@
      ^{:key state}
      [:div
        [:h2 state]
-       [results-viz updates]])])
-       ;[results-table updates]])])
+       [results-viz updates]
+       [results-table updates]])])
 
 (defn init
   [& args]
   (update-loop)
+  (start-timer)
   (rdom/render [main] (.-body js/document)))
 

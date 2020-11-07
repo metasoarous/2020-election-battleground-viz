@@ -17,6 +17,10 @@
 body {
   padding: 30px;
   line-height: 1.7;
+  max-width: 950px;
+  margin-right: 100px;
+  margin-left: auto;
+  margin-right: auto;
   font-family: 'Open Sans', sans-serif;
 }
 
@@ -83,7 +87,27 @@ a {
 }
 
 div.vega-embed div.chart-wrapper {
+  margin-left: -25px;
   height: auto;
 }
 
+table {
+  border-spacing: 0;
+}
+
+table tr {
+  /*border: 1px solid lightgrey;*/
+}
+
+table td, th {
+  text-align: left;
+  padding: 8px 25px 8px 8px;
+  margin: 0;
+  /*border: 1px solid lightgrey;*/
+}
+
+tr:nth-child(even) {
+  /*background: #E8E8E8;*/
+  background: #F0F0F0;
+}
 
