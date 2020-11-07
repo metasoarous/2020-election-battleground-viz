@@ -5,7 +5,9 @@
                 [metasoarous/oz "1.6.0-alpha31"]
                 [cljs-http "0.1.46"]
                 [cider/cider-nrepl "0.22.4"]
-                [semantic-csv "0.2.1-alpha1"]]
+                [semantic-csv "0.2.1-alpha1"]
+                [com.andrewmcveigh/cljs-time "0.5.2"]]
+
  :source-paths ["src"]
 
  :nrepl {:port 3333}
