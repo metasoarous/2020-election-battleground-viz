@@ -6,7 +6,8 @@
                 [cljs-http "0.1.46"]
                 [cider/cider-nrepl "0.22.4"]
                 [semantic-csv "0.2.1-alpha1"]
-                [com.andrewmcveigh/cljs-time "0.5.2"]]
+                [com.andrewmcveigh/cljs-time "0.5.2"]
+                [testdouble/clojurescript.csv "0.4.5"]]
 
  :source-paths ["src"]
 

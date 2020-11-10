@@ -4,6 +4,7 @@
             [reagent.dom :as rdom]
             [cljs-http.client :as http]
             [semantic-csv.core :as csv]
+            [testdouble.cljs.csv :as td-csv]
             [clojure.string :as string]
             [cljs.core.async :as a]
             [cljs-time.core :as t]
@@ -16,8 +17,7 @@
 
 (defn process-csv
   [csv-string]
-  (->> (string/split csv-string #"[\r\n]+")
-       (map #(string/split % #","))
+  (->> (td-csv/read-csv csv-string)
        (csv/process
          {:structs true
           :cast-fns {:hurdle_change csv/->float
@@ -160,9 +160,10 @@
               (percent trailing_candidate_partition)
               "N/A")]
        [:td (percent (:hurdle_mov_avg row))]
-       [:td (if (> hurdle 0)
-              (percent hurdle)
-              "Unknown")]])]])
+       [:td (cond
+              (>= 0 hurdle) "Unkown"
+              (<= 1 hurdle) (str (percent hurdle) " (impossible)")
+              :else (percent hurdle))]])]])
 
 
 (defn intro []
